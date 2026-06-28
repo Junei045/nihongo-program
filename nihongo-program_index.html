@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>にほんごプログラム｜飯島小ワークショップ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f8f6;
+  --surface:#ffffff;
+  --surface2:#f2f2ef;
+  --border:#e0dfd8;
+  --border2:#c8c7c0;
+  --text:#2c2c2a;
+  --text2:#5f5e5a;
+  --text3:#888780;
+  --accent:#1a56a0;
+  --accent-bg:#e6f1fb;
+  --green:#0f6e56;
+  --green-bg:#e1f5ee;
+  --amber:#854f0b;
+  --amber-bg:#faeeda;
+  --purple:#534ab7;
+  --radius:8px;
+  --mono:'Courier New',Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh}
+
+/* ヘッダー */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.logo{font-size:16px;font-weight:700;color:var(--accent)}
+.logo span{color:var(--green);font-size:12px;font-weight:400;margin-left:6px}
+.header-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--accent-bg);color:var(--accent);font-weight:500;margin-left:auto}
+
+/* タブ */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface);padding:0 16px}
+.tab{font-size:13px;padding:10px 16px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;transition:color .15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.tab:hover{color:var(--text)}
+
+/* メインレイアウト */
+.page{display:none;flex-direction:column;gap:12px;padding:14px 16px;max-width:900px;margin:0 auto}
+.page.active{display:flex}
+
+/* ツールバー */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font-size:13px;padding:7px 14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);cursor:pointer;font-family:var(--sans)}
+button:hover{background:var(--surface2)}
+button:active{transform:scale(.98)}
+button.primary{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);font-weight:500}
+button.green{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.badge-level{background:var(--amber-bg);color:var(--amber)}
+
+/* サンプルボタン群 */
+.samples{display:flex;gap:6px;flex-wrap:wrap}
+.s-btn{font-size:12px;padding:5px 10px;background:var(--surface2);border-color:var(--border)}
+
+/* エディタ+のぞき窓 */
+.editor-area{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+.pane-head{font-size:11px;font-weight:600;padding:7px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;color:var(--text2);letter-spacing:.04em;background:var(--surface2)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.left-pane{border-right:1px solid var(--border)}
+textarea#code{width:100%;height:220px;font-family:var(--mono);font-size:13px;padding:10px 12px;border:none;background:#fff;color:var(--text);resize:none;line-height:1.8;outline:none;tab-size:2}
+#nozoki{height:220px;overflow-y:auto;font-family:var(--mono);font-size:12px;padding:10px 12px;background:#f9fbfd;line-height:1.9}
+.n-row{display:flex;gap:0;align-items:flex-start;padding:1px 0;min-height:22px}
+.n-jp{color:var(--text2);min-width:45%;padding-right:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.n-arr{color:var(--text3);padding:0 4px;flex-shrink:0;font-size:11px}
+.n-en{color:#0f6e56;font-size:11.5px;white-space:pre}
+.n-kw{color:#534ab7}
+.n-str{color:#854f0b}
+.n-num{color:#1a56a0}
+.n-cmt{color:#aaa;font-style:italic}
+.n-blank{color:var(--text3);font-size:11px;font-style:italic}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--text3);padding:2px 0;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px}
+
+/* 下部2カラム */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result-box{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.box-head{font-size:11px;font-weight:600;padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2);background:var(--surface2)}
+#output{min-height:80px;max-height:120px;overflow-y:auto;font-family:var(--mono);font-size:13px;padding:8px 10px;white-space:pre-wrap;line-height:1.75;color:var(--text)}
+#vars-out{min-height:80px;padding:8px 10px;font-size:12px;color:var(--text2);line-height:2}
+.var-row{display:flex;gap:6px}
+.v-name{font-family:var(--mono);color:var(--accent)}
+.v-eq{color:var(--text3)}
+.v-val{font-family:var(--mono);font-weight:600;color:var(--text)}
+
+/* かめキャンバス */
+#turtle-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:none}
+#turtle-wrap .box-head{background:var(--green-bg);color:var(--green)}
+canvas#turtle{width:100%;display:block;background:#fff}
+
+/* テキスト説明ページ */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.section h2{font-size:15px;font-weight:700;color:var(--accent);padding-bottom:6px;border-bottom:2px solid var(--accent-bg)}
+.section h3{font-size:13px;font-weight:700;color:var(--green);margin-top:6px}
+.section p{font-size:13px;line-height:1.8;color:var(--text)}
+.section ul{padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.section li{font-size:13px;line-height:1.7;color:var(--text)}
+.code-block{background:#f0f4f8;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-family:var(--mono);font-size:12.5px;line-height:1.9;color:#1a3a6b;white-space:pre}
+.note{background:var(--amber-bg);border-left:3px solid #ef9f27;border-radius:0 var(--radius) var(--radius) 0;padding:8px 12px;font-size:12.5px;color:var(--amber);line-height:1.7}
+.ref-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.ref-table th{background:var(--surface2);padding:6px 10px;text-align:left;border:1px solid var(--border);font-weight:600;color:var(--text2)}
+.ref-table td{padding:6px 10px;border:1px solid var(--border);vertical-align:top}
+.ref-table tr:nth-child(even){background:#fafaf8}
+.jp-cell{font-family:var(--mono);color:var(--accent)}
+.en-cell{font-family:var(--mono);color:var(--green);font-size:11.5px}
+.err{color:#c0392b}
+.ok{color:var(--green)}
+
+/* フッター */
+footer{text-align:center;font-size:11px;color:var(--text3);padding:20px 0 30px;border-top:1px solid var(--border);margin-top:20px}
+
+@media(max-width:600px){
+  .editor-area,.bottom-grid{grid-template-columns:1fr}
+  .left-pane{border-right:none;border-bottom:1px solid var(--border)}
+  #nozoki{height:160px}
+  textarea#code{height:160px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">にほんごプログラム <span>飯島小中学校 学校運営協議会／豊田連合</span></div>
+  <div class="header-badge">ワークショップ ver.1.0</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('run')">▶ プログラムを動かす</button>
+  <button class="tab" onclick="showTab('ref')">📖 命令の一覧</button>
+  <button class="tab" onclick="showTab('about')">🔍 このプログラムの裏側</button>
+</div>
+
+<!-- ===== タブ1：実行画面 ===== -->
+<div id="tab-run" class="page active">
+  <div class="toolbar">
+    <button class="primary" id="run-btn">▶ 実行する</button>
+    <button id="clear-btn">クリア</button>
+    <button id="reset-btn">かめをリセット</button>
+    <span class="badge badge-level">のぞき窓モード ON</span>
+    <div class="samples">
+      <button class="s-btn" onclick="load('hello')">はじめて</button>
+      <button class="s-btn" onclick="load('var')">変数</button>
+      <button class="s-btn" onclick="load('loop')">くりかえし</button>
+      <button class="s-btn" onclick="load('ifthen')">もし〜なら</button>
+      <button class="s-btn" onclick="load('turtle')">かめ描画</button>
+      <button class="s-btn" onclick="load('spiral')">うずまき</button>
+    </div>
+  </div>
+
+  <div class="editor-area">
+    <div class="left-pane">
+      <div class="pane-head"><span class="dot" style="background:#0f6e56"></span>日本語コード（書くところ）</div>
+      <textarea id="code" spellcheck="false" placeholder="ここに命令を書いてね">「こんにちは！」と表示する
+「ねんれい」に 11 を いれる
+「ねんれい」を表示する
+3かいくりかえす
+　「たのしい！」と表示する
+くりかえしおわり
+もし「ねんれい」が 10 より おおきければ
+　「10さいより上です」と表示する
+おわり</textarea>
+    </div>
+    <div>
+      <div class="pane-head"><span class="dot" style="background:#378add"></span>のぞき窓 ― 英語に翻訳するとこうなる</div>
+      <div id="nozoki"><span class="n-blank">← コードを書くと翻訳が表示されます</span></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="leg"><span style="color:#534ab7">■</span>キーワード</span>
+    <span class="leg"><span style="color:#854f0b">■</span>文字列</span>
+    <span class="leg"><span style="color:#1a56a0">■</span>数字</span>
+    <span class="leg"><span style="color:#aaa">■</span>コメント（説明）</span>
+    <span class="leg"><span style="color:#0f6e56">■</span>動作命令</span>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="result-box">
+      <div class="box-head">実行結果</div>
+      <div id="output">ここに結果が表示されます</div>
+    </div>
+    <div class="result-box">
+      <div class="box-head">変数ウォッチャー</div>
+      <div id="vars-out"><span class="n-blank">変数はまだありません</span></div>
+    </div>
+  </div>
+
+  <div id="turtle-wrap" class="result-box">
+    <div class="box-head">かめの絵</div>
+    <canvas id="turtle" width="700" height="280"></canvas>
+  </div>
+</div>
+
+<!-- ===== タブ2：命令一覧 ===== -->
+<div id="tab-ref" class="page">
+  <div class="section">
+    <h2>使える命令の一覧</h2>
+    <h3>文字や数字を表示する</h3>
+    <table class="ref-table">
+      <tr><th>日本語命令</th><th>例</th><th>意味</th></tr>
+      <tr><td class="jp-cell">「〜」と表示する</td><td class="jp-cell">「こんにちは」と表示する</td><td>「」の中の文字をそのまま表示する</td></tr>
+      <tr><td class="jp-cell">「変数名」を表示する</td><td class="jp-cell">「ねんれい」を表示する</td><td>変数の中身を表示する</td></tr>
+      <tr><td class="jp-cell">数字 を表示する</td><td class="jp-cell">42 を表示する</td><td>数字をそのまま表示する</td></tr>
+    </table>
+
+    <h3>変数（へんすう）</h3>
+    <div class="note">変数とは「数や文字をしまっておく箱」のことです。名前はひらがなでつけられます。</div>
+    <table class="ref-table">
+      <tr><th>日本語命令</th><th>例</th><th>意味</th></tr>
+      <tr><td class="jp-cell">「名前」に 数 を いれる</td><td class="jp-cell">「ねんれい」に 10 を いれる</td><td>箱に数を入れる</td></tr>
+      <tr><td class="jp-cell">「名前1」と「名前2」を たして表示する</td><td class="jp-cell">「ねんれい」と「ともだち」を たして表示する</td><td>2つの変数を足して表示</td></tr>
+      <tr><td class="jp-cell">〃 ひいて / かけて / わって</td><td></td><td>引き算・掛け算・割り算も同様</td></tr>
+      <tr><td class="jp-cell">「名前」に N を たして「名前」に いれる</td><td class="jp-cell">「ながさ」に 10 を たして「ながさ」に いれる</td><td>変数に数を足して上書き</td></tr>
+    </table>
+
+    <h3>くりかえし</h3>
+    <table class="ref-table">
+      <tr><th>日本語命令</th><th>意味</th></tr>
+      <tr><td class="jp-cell">N かいくりかえす<br>　（命令）<br>くりかえしおわり</td><td>N回くりかえす。変数名でもOK。</td></tr>
+    </table>
+
+    <h3>もし〜ならば</h3>
+    <table class="ref-table">
+      <tr><th>日本語命令</th><th>意味</th></tr>
+      <tr><td class="jp-cell">もし「名前」が N より おおきければ<br>　（命令）<br>そうでなければ<br>　（命令）<br>おわり</td><td>条件によって処理を分ける。「そうでなければ」は省略できる。</td></tr>
+      <tr><td class="jp-cell">もし「名前」が N より ちいさければ</td><td>小さい場合</td></tr>
+      <tr><td class="jp-cell">もし「名前」が N と おなじならば</td><td>等しい場合</td></tr>
+    </table>
+
+    <h3>かめ描画</h3>
+    <div class="note">かめが画面の真ん中からスタートして、命令どおりに動きながら線を描きます。</div>
+    <table class="ref-table">
+      <tr><th>命令</th><th>意味</th></tr>
+      <tr><td class="jp-cell">N すすむ</td><td>N歩前に進む（変数名でもOK）</td></tr>
+      <tr><td class="jp-cell">N まがる</td><td>N度右に向きを変える</td></tr>
+      <tr><td class="jp-cell">ペンをあげる</td><td>線を描くのをやめる（移動だけ）</td></tr>
+      <tr><td class="jp-cell">ペンをおろす</td><td>また線を描き始める</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== タブ3：裏側 ===== -->
+<div id="tab-about" class="page">
+  <div class="section">
+    <h2>このプログラムの裏側（第3回ワークショップ）</h2>
+    <p>みなさんが書いた「日本語の命令」は、どうやってコンピュータに伝わるのでしょう？　「のぞき窓」で見えていた英語が、実際の仕組みです。</p>
+  </div>
+
+  <div class="section">
+    <h2>ステップ1：字句解析（じくかいせき）― 命令を「単語」に分ける</h2>
+    <p>まず、1行の命令を「単語のかたまり」に分解します。この作業を <strong>トークナイズ</strong> といいます。</p>
+    <div class="code-block">日本語命令：「ねんれい」に 10 を いれる
+
+↓ 分解すると…
+
+[ 変数:"ねんれい" ][ キーワード:"に" ][ 数字:10 ][ キーワード:"を" ][ キーワード:"いれる" ]</div>
+    <div class="note">人間は「ねんれいに10をいれる」を一気に読めますが、コンピュータは1文字ずつしか読めません。だから「どこで区切るか」を最初に決める必要があるのです。</div>
+    <p>実際のJavaScriptコード（このページの中に入っています）：</p>
+    <div class="code-block">function tokenize(line) {
+  // 「」で囲まれた部分 → 変数名
+  if (line[i] === '「') {
+    let j = line.indexOf('」', i+1);
+    tokens.push({ type: 'var', val: line.slice(i+1, j) });
+  }
+  // 数字 → 数値
+  else if (/[0-9]/.test(line[i])) {
+    // 数字が続く間つなげる
+    while (/[0-9.]/.test(line[i])) num += line[i++];
+    tokens.push({ type: 'num', val: parseFloat(num) });
+  }
+  // それ以外 → キーワード
+  else {
+    // 空白まで読む
+    tokens.push({ type: 'kw', val: word });
+  }
+}</div>
+  </div>
+
+  <div class="section">
+    <h2>ステップ2：実行（じっこう）― 命令を動かす</h2>
+    <p>分解した単語を見て「どの命令か」を判断し、実際に動かします。これを <strong>インタープリタ</strong>（翻訳係）といいます。</p>
+    <div class="code-block">// 「〜」と表示する → の場合
+if (tok[0].type === 'var' && tok[1].val === 'と表示する') {
+  output.push(tok[0].val);  // 出力に追加する
+}
+
+// N かいくりかえす → の場合
+if (tok[0].type === 'num' && kw.includes('かいくりかえす')) {
+  const times = tok[0].val;           // 回数
+  for (let k = 0; k < times; k++) {  // その回数だけ
+    execLines(body, output);          // 中身を実行
+  }
+}</div>
+    <div class="note">「もし〜ならば」「くりかえし」は、<strong>再帰（さいき）</strong>という方法を使っています。命令の中に命令があっても、同じ関数を何度も呼ぶことで処理できます。</div>
+  </div>
+
+  <div class="section">
+    <h2>ステップ3：かめ描画の仕組み</h2>
+    <p>かめの絵は <strong>Canvas（キャンバス）</strong> という機能を使っています。かめの位置（x, y）と向き（角度）を変数で管理して、「すすむ」たびに線を引いています。</p>
+    <div class="code-block">let tx = 350;   // かめのX位置（横）
+let ty = 140;   // かめのY位置（縦）
+let tangle = -90;  // かめの向き（上向きからスタート）
+
+function tMove(d) {
+  const rad = tangle * Math.PI / 180;  // 角度をラジアンに変換
+  const nx = tx + d * Math.cos(rad);   // 新しいX
+  const ny = ty + d * Math.sin(rad);   // 新しいY
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);   // 今の場所から
+  ctx.lineTo(nx, ny);   // 新しい場所へ線を引く
+  ctx.stroke();
+  tx = nx; ty = ny;     // 位置を更新
+}</div>
+    <p>「90 まがる」は角度を90度増やすだけ。「4かいくりかえす → 80すすむ → 90まがる」で正方形が描けるのは、4回 × 90度 = 360度（一周）になるからです！</p>
+  </div>
+
+  <div class="section">
+    <h2>チャレンジ：のぞき窓で確認しながら改造しよう</h2>
+    <p>「プログラムを動かす」タブに戻って、コードを打ちながら「のぞき窓」で英語への翻訳を見てみましょう。</p>
+    <ul>
+      <li>変数の名前を変えると、英語のどこが変わる？</li>
+      <li>くりかえしの回数を変えると、英語のどこが変わる？</li>
+      <li>「もし〜おおきければ」を「もし〜ちいさければ」にすると？</li>
+    </ul>
+    <div class="note">このページ全体（にほんごプログラム）は、JavaScriptというプログラム言語で作られています。ページ上で右クリック→「ページのソースを表示」すると、全部のコードが見られます！</div>
+    <p style="margin-top:8px"><button class="green" onclick="showTab('run')">▶ プログラムを動かすタブへ戻る</button></p>
+  </div>
+</div>
+
+<footer>
+  飯島小中学校 学校運営協議会 ／ 豊田連合（栄区）｜
+  <a href="https://junei045.github.io/" style="color:var(--accent)">junei045.github.io</a>
+</footer>
+
+<script>
+/* ===== タブ切替 ===== */
+function showTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const names=['run','ref','about'];
+    t.classList.toggle('active', names[i]===name);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+/* ===== サンプル ===== */
+const SAMPLES={
+  hello:`「こんにちは！」と表示する
+「わたしの名前は アイロ です」と表示する
+3かいくりかえす
+　「プログラム、たのしい！」と表示する
+くりかえしおわり`,
+  var:`「ねんれい」に 11 を いれる
+「ともだち」に 4 を いれる
+「ねんれい」を表示する
+「ともだち」を表示する
+「ねんれい」と「ともだち」を たして表示する
+「ねんれい」と「ともだち」を かけて表示する`,
+  loop:`4かいくりかえす
+　80 すすむ
+　90 まがる
+くりかえしおわり`,
+  ifthen:`「てん」に 85 を いれる
+もし「てん」が 70 より おおきければ
+　「ごうかく！」と表示する
+そうでなければ
+　「もう一どがんばろう」と表示する
+おわり`,
+  turtle:`5かいくりかえす
+　100 すすむ
+　144 まがる
+くりかえしおわり`,
+  spiral:`「ながさ」に 5 を いれる
+20かいくりかえす
+　「ながさ」すすむ
+　90 まがる
+　「ながさ」に 10 を たして「ながさ」に いれる
+くりかえしおわり`
+};
+
+function load(k){
+  document.getElementById('code').value=SAMPLES[k];
+  updateNozoki();
+}
+
+/* ===== のぞき窓 翻訳 ===== */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function translateLine(line){
+  const raw=line.trim();
+  if(!raw) return null;
+
+  const strLit=raw.match(/^「(.+)」と表示する$/);
+  if(strLit) return `output.push(<span class="n-str">'${esc(strLit[1])}'</span>)`;
+
+  const varShow=raw.match(/^「(.+)」を表示する$/);
+  if(varShow) return `output.push(vars[<span class="n-str">'${esc(varShow[1])}'</span>])`;
+
+  const numShow=raw.match(/^(\d+) を表示する$/);
+  if(numShow) return `output.push(<span class="n-num">${numShow[1]}</span>)`;
+
+  const varSet=raw.match(/^「(.+)」に (\d+) を いれる$/);
+  if(varSet) return `vars[<span class="n-str">'${esc(varSet[1])}'</span>] = <span class="n-num">${varSet[2]}</span>`;
+
+  const varCalcSet=raw.match(/^「(.+)」に (\d+) を (.+)て「(.+)」に いれる$/);
+  if(varCalcSet){
+    const ops={たし:'+',ひい:'-',かけ:'*',わっ:'/'};
+    const op=ops[varCalcSet[3].slice(0,2)]||'?';
+    return `vars[<span class="n-str">'${esc(varCalcSet[4])}'</span>] = vars[<span class="n-str">'${esc(varCalcSet[4])}'</span>] ${op} <span class="n-num">${varCalcSet[2]}</span>`;
+  }
+
+  const calc2=raw.match(/^「(.+)」と「(.+)」を (.+)て表示する$/);
+  if(calc2){
+    const ops={たし:'+',ひい:'-',かけ:'*',わっ:'/'};
+    const op=ops[calc2[3].slice(0,2)]||'?';
+    return `output.push(vars[<span class="n-str">'${esc(calc2[1])}'</span>] ${op} vars[<span class="n-str">'${esc(calc2[2])}'</span>])`;
+  }
+
+  const loopN=raw.match(/^(\d+)かいくりかえす$/);
+  if(loopN) return `<span class="n-kw">for</span> (<span class="n-kw">let</span> k=0; k&lt;<span class="n-num">${loopN[1]}</span>; k++) {`;
+
+  const loopV=raw.match(/^「(.+)」かいくりかえす$/);
+  if(loopV) return `<span class="n-kw">for</span> (<span class="n-kw">let</span> k=0; k&lt;vars[<span class="n-str">'${esc(loopV[1])}'</span>]; k++) {`;
+
+  if(raw==='くりかえしおわり') return `}  <span class="n-cmt">// くりかえし終わり</span>`;
+
+  const ifGt=raw.match(/^もし「(.+)」が (\d+) より おおきければ$/);
+  if(ifGt) return `<span class="n-kw">if</span> (vars[<span class="n-str">'${esc(ifGt[1])}'</span>] &gt; <span class="n-num">${ifGt[2]}</span>) {`;
+
+  const ifLt=raw.match(/^もし「(.+)」が (\d+) より ちいさければ$/);
+  if(ifLt) return `<span class="n-kw">if</span> (vars[<span class="n-str">'${esc(ifLt[1])}'</span>] &lt; <span class="n-num">${ifLt[2]}</span>) {`;
+
+  const ifEq=raw.match(/^もし「(.+)」が (\d+) と おなじならば$/);
+  if(ifEq) return `<span class="n-kw">if</span> (vars[<span class="n-str">'${esc(ifEq[1])}'</span>] === <span class="n-num">${ifEq[2]}</span>) {`;
+
+  if(raw==='そうでなければ') return `} <span class="n-kw">else</span> {`;
+  if(raw==='おわり') return `}  <span class="n-cmt">// もし終わり</span>`;
+
+  const fwd=raw.match(/^(\d+) すすむ$/);
+  if(fwd) return `tMove(<span class="n-num">${fwd[1]}</span>)  <span class="n-cmt">// ${fwd[1]}歩前進</span>`;
+
+  const fwdV=raw.match(/^「(.+)」すすむ$/);
+  if(fwdV) return `tMove(vars[<span class="n-str">'${esc(fwdV[1])}'</span>])`;
+
+  const turn=raw.match(/^(\d+) まがる$/);
+  if(turn) return `tTurn(<span class="n-num">${turn[1]}</span>)  <span class="n-cmt">// ${turn[1]}度右に回転</span>`;
+
+  if(raw==='ペンをあげる') return `tpen = <span class="n-kw">false</span>`;
+  if(raw==='ペンをおろす') return `tpen = <span class="n-kw">true</span>`;
+
+  return `<span class="n-cmt">// ??? "${esc(raw)}"</span>`;
+}
+
+function updateNozoki(){
+  const lines=document.getElementById('code').value.split('\n');
+  const el=document.getElementById('nozoki');
+  if(!lines.some(l=>l.trim())){
+    el.innerHTML='<span class="n-blank">← コードを書くと翻訳が表示されます</span>';
+    return;
+  }
+  el.innerHTML=lines.map(line=>{
+    const raw=line.trim();
+    if(!raw) return '<div class="n-row"></div>';
+    const en=translateLine(line);
+    const jpShort=raw.length>20?raw.slice(0,19)+'…':raw;
+    return `<div class="n-row"><span class="n-jp">${esc(jpShort)}</span><span class="n-arr">→</span><span class="n-en">${en||''}</span></div>`;
+  }).join('');
+}
+
+document.getElementById('code').addEventListener('input',updateNozoki);
+
+/* ===== かめ ===== */
+const cv=document.getElementById('turtle');
+const ctx=cv.getContext('2d');
+let tx,ty,tangle,tpen;
+
+function resetTurtle(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  tx=cv.width/2; ty=cv.height/2; tangle=-90; tpen=true;
+  ctx.strokeStyle='#1D9E75'; ctx.lineWidth=2;
+}
+resetTurtle();
+
+function tMove(d){
+  const r=tangle*Math.PI/180,nx=tx+d*Math.cos(r),ny=ty+d*Math.sin(r);
+  if(tpen){ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();}
+  tx=nx;ty=ny;
+}
+function tTurn(deg){tangle+=deg;}
+
+/* ===== インタープリタ ===== */
+const vars={};
+
+function gv(tok){return tok.type==='num'?tok.val:(vars[tok.val]??0);}
+
+function tokenize(line){
+  line=line.trim();const toks=[];let i=0;
+  while(i<line.length){
+    if(line[i]==='「'){let j=line.indexOf('」',i+1);if(j<0)j=line.length;toks.push({type:'var',val:line.slice(i+1,j)});i=j+1;}
+    else if(/[0-9]/.test(line[i])){let n='';while(i<line.length&&/[0-9.]/.test(line[i]))n+=line[i++];toks.push({type:'num',val:parseFloat(n)});}
+    else if(line[i]===' '||line[i]==='　'){i++;}
+    else{let w='';while(i<line.length&&line[i]!=' '&&line[i]!='　'&&line[i]!='「')w+=line[i++];if(w)toks.push({type:'kw',val:w});}
+  }
+  return toks;
+}
+
+function execLines(lines,out){
+  let j=0;
+  while(j<lines.length){
+    const line=lines[j].trim();if(!line){j++;continue;}
+    const tok=tokenize(line),kw=tok.map(t=>t.val).join(' ');
+
+    const strLit=line.match(/^「(.+)」と表示する$/);
+    if(strLit&&!(tok[0].val in vars)){out.push(strLit[1]);j++;continue;}
+    if(tok.length===2&&tok[0].type==='var'&&tok[1].val==='と表示する'){out.push(String(vars[tok[0].val]??tok[0].val));j++;continue;}
+    if(tok.length===2&&tok[0].type==='var'&&tok[1].val==='を表示する'){out.push(String(vars[tok[0].val]??0));j++;continue;}
+    if(tok.length===2&&tok[0].type==='num'&&tok[1].val==='を表示する'){out.push(String(tok[0].val));j++;continue;}
+
+    if(tok.length>=4&&tok[0].type==='var'&&tok[1].val==='に'&&tok[tok.length-1].val==='いれる'){
+      const name=tok[0].val;
+      if(tok.length===7&&['たして','ひいて','かけて','わって'].includes(tok[3].val)&&tok[4].type==='var'){
+        const a=vars[tok[4].val]??0,b=gv(tok[2]),op=tok[3].val;
+        vars[name]=op==='たして'?a+b:op==='ひいて'?a-b:op==='かけて'?a*b:b!==0?a/b:0;
+      }else{vars[name]=gv(tok[2]);}
+      j++;continue;
+    }
+
+    if(tok.length===5&&tok[0].type==='var'&&tok[1].val==='と'&&tok[2].type==='var'&&tok[4].val==='表示する'){
+      const a=vars[tok[0].val]??0,b=vars[tok[2].val]??0,op=tok[3].val;
+      let r=op==='たして'?a+b:op==='ひいて'?a-b:op==='かけて'?a*b:b!==0?a/b:0;
+      out.push(String(r));j++;continue;
+    }
+
+    const loopNum=tok.length>=2&&tok[0].type==='num'&&/かいくりかえす/.test(kw);
+    const loopVar=tok.length>=2&&tok[0].type==='var'&&/かいくりかえす/.test(kw);
+    if(loopNum||loopVar){
+      const times=loopNum?tok[0].val:(vars[tok[0].val]??0);
+      const body=[];j++;
+      while(j<lines.length&&!lines[j].trim().startsWith('くりかえしおわり')){body.push(lines[j]);j++;}
+      j++;for(let k=0;k<times;k++)execLines(body,out);continue;
+    }
+
+    if(line.startsWith('もし')){
+      const varT=tok.filter(t=>t.type==='var'),numT=tok.filter(t=>t.type==='num');
+      const a=varT.length>0?(vars[varT[0].val]??0):0;
+      const b=varT.length>1?(vars[varT[1].val]??0):(numT.length>0?numT[0].val:0);
+      let cond=/おおきければ/.test(kw)?a>b:/ちいさければ/.test(kw)?a<b:a===b;
+      const tb=[],fb=[];let inE=false;j++;
+      while(j<lines.length&&!lines[j].trim().startsWith('おわり')){
+        if(lines[j].trim().startsWith('そうでなければ')){inE=true;j++;continue;}
+        (inE?fb:tb).push(lines[j]);j++;
+      }
+      j++;execLines(cond?tb:fb,out);continue;
+    }
+
+    if(tok.length===2&&tok[0].type==='num'&&tok[1].val==='すすむ'){tMove(tok[0].val);j++;continue;}
+    if(tok.length===2&&tok[0].type==='var'&&tok[1].val==='すすむ'){tMove(vars[tok[0].val]??0);j++;continue;}
+    if(tok.length===2&&tok[0].type==='num'&&tok[1].val==='まがる'){tTurn(tok[0].val);j++;continue;}
+    if(tok.length===2&&tok[0].type==='var'&&tok[1].val==='まがる'){tTurn(vars[tok[0].val]??0);j++;continue;}
+    if(line==='ペンをあげる'){tpen=false;j++;continue;}
+    if(line==='ペンをおろす'){tpen=true;j++;continue;}
+
+    out.push(`<span class="err">❌ わからない命令：${esc(line)}</span>`);j++;
+  }
+}
+
+document.getElementById('run-btn').onclick=()=>{
+  Object.keys(vars).forEach(k=>delete vars[k]);
+  resetTurtle();
+  const src=document.getElementById('code').value;
+  const hasTurtle=/すすむ|まがる|ペン/.test(src);
+  document.getElementById('turtle-wrap').style.display=hasTurtle?'block':'none';
+  const out=[];
+  try{execLines(src.split('\n'),out);}catch(e){out.push(`<span class="err">❌ ${esc(e.message)}</span>`);}
+  document.getElementById('output').innerHTML=out.length?out.map(r=>r.startsWith('<span')?r:esc(r)).join('\n'):'<span class="ok">（出力なし）</span>';
+  const vk=Object.keys(vars);
+  document.getElementById('vars-out').innerHTML=vk.length?vk.map(k=>`<div class="var-row"><span class="v-name">${esc(k)}</span><span class="v-eq"> = </span><span class="v-val">${esc(String(vars[k]))}</span></div>`).join(''):'<span class="n-blank">変数はまだありません</span>';
+  updateNozoki();
+};
+
+document.getElementById('clear-btn').onclick=()=>{
+  document.getElementById('code').value='';
+  updateNozoki();
+  document.getElementById('turtle-wrap').style.display='none';
+  document.getElementById('output').textContent='ここに結果が表示されます';
+  document.getElementById('vars-out').innerHTML='<span class="n-blank">変数はまだありません</span>';
+};
+
+document.getElementById('reset-btn').onclick=()=>{resetTurtle();};
+
+updateNozoki();
+</script>
+</body>
+</html>
